@@ -6,7 +6,8 @@ const MAILPIT = process.env.MAILPIT_URL ?? "http://localhost:8025";
 /** Invites a user and signs them in with the emailed sign-in link or code. */
 async function signInAsNewUser(page: Page, request: APIRequestContext, role: string) {
   const email = `${role}-${Date.now().toString(36)}@example.com`;
-  const invited = await api(request, "users.invite", { invites: [{ email, name: "Gina Guest", role }] });
+  const invited = await api(request, "users.invite", { invites: [{ email, name: "Gina Guest", role: "member" }] });
+  await api(request, "users.update_role", { id: invited.users[0].id, role });
 
   await page.goto("/");
   await page.getByRole("button", { name: /Continue with Email/i }).click();
@@ -54,5 +55,6 @@ test.describe("Sharing", () => {
     await expect(page.getByText("Renewal is due in June.")).toBeVisible();
     await page.getByRole("button", { name: "Document options" }).first().click();
     await expect(page.getByRole("menuitem", { name: /Duplicate/ })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: /Duplicate/ })).toBeEnabled();
   });
 });
